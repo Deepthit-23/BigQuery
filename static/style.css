@@ -43,6 +43,76 @@
     --font-body: 'Plus Jakarta Sans', sans-serif;
 }
 
+/* Light Theme variables override */
+body.light-theme {
+    --bg-app: #f4f6fa;
+    --bg-card: #ffffff;
+    --bg-card-hover: #f1f5f9;
+    --bg-sidebar: #ffffff;
+    --primary-color: #0284c7;
+    --primary-hover: #0369a1;
+    --primary-glow: rgba(2, 132, 199, 0.12);
+    
+    --badge-feature-bg: rgba(16, 185, 129, 0.12);
+    --badge-announcement-bg: rgba(59, 130, 246, 0.12);
+    --badge-issue-bg: rgba(239, 68, 68, 0.12);
+    --badge-deprecation-bg: rgba(245, 158, 11, 0.12);
+    --badge-default-bg: rgba(139, 92, 246, 0.12);
+
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    
+    --border-color: rgba(15, 23, 42, 0.08);
+    --border-hover: rgba(15, 23, 42, 0.14);
+    --border-focus: rgba(2, 132, 199, 0.35);
+}
+
+/* Light Theme Element Customizations */
+body.light-theme .app-header h1 {
+    background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+body.light-theme .detail-body-html {
+    color: rgba(15, 23, 42, 0.95);
+}
+
+body.light-theme .detail-body-html code {
+    background-color: rgba(15, 23, 42, 0.05);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    color: #0f172a;
+}
+
+body.light-theme .detail-body-html pre {
+    background-color: rgba(15, 23, 42, 0.03);
+    border: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+body.light-theme .detail-body-html pre code {
+    color: #0f172a;
+}
+
+body.light-theme .composer-body textarea {
+    background-color: rgba(15, 23, 42, 0.02);
+    border-color: rgba(15, 23, 42, 0.08);
+}
+
+body.light-theme ::-webkit-scrollbar-thumb {
+    background: rgba(15, 23, 42, 0.12);
+}
+
+body.light-theme ::-webkit-scrollbar-thumb:hover {
+    background: rgba(15, 23, 42, 0.22);
+}
+
+body.light-theme .loading-state, 
+body.light-theme .error-state, 
+body.light-theme .empty-state {
+    color: var(--text-secondary);
+}
+
 /* Reset & Global Styling */
 * {
     box-sizing: border-box;
@@ -136,6 +206,21 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 16px;
+}
+
+.action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-icon-only {
+    padding: 10px !important;
+    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .last-updated-text {
@@ -390,7 +475,39 @@ body {
 .item-meta {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.btn-copy-card {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px;
+    border-radius: 6px;
+    transition: all var(--transition-speed);
+}
+
+.btn-copy-card:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+body.light-theme .btn-copy-card:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.btn-copy-card svg {
+    width: 14px;
+    height: 14px;
+}
+
+.btn-copy-card.copied {
+    color: var(--badge-feature) !important;
 }
 
 /* Badges with aligned icons */

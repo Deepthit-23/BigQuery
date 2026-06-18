@@ -18,6 +18,10 @@ const refreshBtn = document.getElementById('refresh-btn');
 const spinnerIcon = document.getElementById('spinner-icon');
 const lastUpdatedSpan = document.getElementById('last-updated');
 const searchInput = document.getElementById('search-input');
+const themeToggleBtn = document.getElementById('theme-toggle');
+const themeMoonIcon = document.getElementById('theme-moon');
+const themeSunIcon = document.getElementById('theme-sun');
+const exportCsvBtn = document.getElementById('export-csv-btn');
 const tabButtons = document.querySelectorAll('.tab-btn');
 const feedList = document.getElementById('feed-list');
 const loader = document.getElementById('loader');
@@ -162,6 +166,40 @@ function renderFeed() {
                 badge.innerHTML = `${iconSvg}<span>${item.type}</span>`;
                 meta.appendChild(badge);
                 
+                // Clipboard copy button
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'btn-copy-card';
+                copyBtn.title = 'Copy update text to clipboard';
+                copyBtn.innerHTML = `
+                    <svg class="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                `;
+                
+                copyBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // prevent card select trigger
+                    const cleanDesc = stripHtml(item.content_html);
+                    const textToCopy = `BigQuery Update (${entry.title}) - ${item.type}:\n${cleanDesc}\n\nRead more: ${entry.link}`;
+                    
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        const originalHtml = copyBtn.innerHTML;
+                        copyBtn.innerHTML = `
+                            <svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                        `;
+                        copyBtn.classList.add('copied');
+                        setTimeout(() => {
+                            copyBtn.innerHTML = originalHtml;
+                            copyBtn.classList.remove('copied');
+                        }, 1500);
+                    }).catch(err => {
+                        console.error('Failed to copy to clipboard', err);
+                    });
+                });
+                meta.appendChild(copyBtn);
+                
                 itemEl.appendChild(meta);
                 
                 const preview = document.createElement('div');
@@ -289,9 +327,67 @@ function postTweet() {
     window.open(twitterIntentUrl, '_blank');
 }
 
+// Export current filtered dataset to CSV file
+function exportToCSV() {
+    const csvRows = [
+        ["Date", "Type", "Description", "Source Link"]
+    ];
+    
+    releaseEntries.forEach(entry => {
+        entry.items.forEach(item => {
+            const matchesTab = activeFilter === 'all' || item.type.toLowerCase() === activeFilter.toLowerCase();
+            const rawText = (item.type + ' ' + stripHtml(item.content_html)).toLowerCase();
+            const matchesSearch = rawText.includes(searchQuery.toLowerCase());
+            
+            if (matchesTab && matchesSearch) {
+                const cleanDesc = stripHtml(item.content_html);
+                csvRows.push([entry.title, item.type, cleanDesc, entry.link]);
+            }
+        });
+    });
+    
+    if (csvRows.length <= 1) {
+        alert("No items to export for the current filters.");
+        return;
+    }
+    
+    // Format rows correctly: double quotes escaped, fields comma-separated
+    const csvContent = csvRows.map(row => 
+        row.map(val => `"${val.replace(/"/g, '""')}"`).join(",")
+    ).join("\n");
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `bigquery_release_notes_${activeFilter}_filter.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Toggle page color scheme (Light/Dark mode)
+function toggleTheme() {
+    document.body.classList.toggle('light-theme');
+    const isLight = document.body.classList.contains('light-theme');
+    
+    if (isLight) {
+        themeMoonIcon.classList.add('hidden');
+        themeSunIcon.classList.remove('hidden');
+        localStorage.setItem('theme', 'light');
+    } else {
+        themeMoonIcon.classList.remove('hidden');
+        themeSunIcon.classList.add('hidden');
+        localStorage.setItem('theme', 'dark');
+    }
+}
+
 // Event Listeners
 refreshBtn.addEventListener('click', fetchReleaseNotes);
 retryBtn.addEventListener('click', fetchReleaseNotes);
+exportCsvBtn.addEventListener('click', exportToCSV);
+themeToggleBtn.addEventListener('click', toggleTheme);
 
 searchInput.addEventListener('input', (e) => {
     searchQuery = e.target.value;
@@ -313,5 +409,12 @@ tweetBtn.addEventListener('click', postTweet);
 
 // Initial Load
 document.addEventListener('DOMContentLoaded', () => {
+    // Check saved theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+        themeMoonIcon.classList.add('hidden');
+        themeSunIcon.classList.remove('hidden');
+    }
     fetchReleaseNotes();
 });
